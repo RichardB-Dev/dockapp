@@ -1,0 +1,10 @@
+version: '3.4'
+
+services:
+  dockapp:
+    image: dockapp
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - 5002:5002
