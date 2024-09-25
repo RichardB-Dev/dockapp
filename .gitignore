@@ -1,5 +1,7 @@
 .venv/
 .vs/
+__pycache__/
+*.pyc
 
 ordinary_comment.csv
 ordinary_post.csv

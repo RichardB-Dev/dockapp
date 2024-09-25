@@ -7,15 +7,13 @@ python -m venv .venv
 #Install Flask on your machine
 python -m pip install flask
 
-pip install praw
 
+pip install praw
 pip install pandas
 pip install TextBlob
 pip install matplotlib
-
 pip install seaborn
 pip install wordcloud
-
 pip install matplotlib
 
 
