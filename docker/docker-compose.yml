@@ -5,6 +5,6 @@ services:
     image: dockapp
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: ./docker/Dockerfile
 #    ports:
 #      - 5002:5002
