@@ -15,7 +15,7 @@ pip install matplotlib
 pip install seaborn
 pip install wordcloud
 pip install matplotlib
-
+pip install docker
 
 flask run
 
