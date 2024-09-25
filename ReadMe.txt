@@ -21,26 +21,31 @@ pip install matplotlib
 
 flask run
 
+############
+# Docker Setup + Restart
+############
+
+git pull
+git reset --hard
 
 
-docker stop $(docker ps -aq)
-
-docker rm $(docker ps -aq)
-
+# docker stop $(docker ps -aq)
+# docker rm $(docker ps -aq)
 
 docker stop $(docker ps -aq)
 docker rm $(docker ps -aq)
 docker rmi $(docker images -q)
 
 docker build -t app1 .
+# docker run app1
 docker run -p 5000:5000 app1
 
 
-docker build -t app1 .
-docker run app1
 
 
-Server setup:
+##############
+# Server setup:
+#############
 sudo apt install nginx
 
 

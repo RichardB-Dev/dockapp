@@ -105,7 +105,12 @@
             btn_getdata.disabled = false;
 
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => {
+                console.error('Error:', error);
+                btn_getdata.innerText = 'Get Data';
+                btn_getdata.disabled = false;
+                alert('An error occurred: ' + error.message); // Error pop-up
+            });
     }
     
 </script>
