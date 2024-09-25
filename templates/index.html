@@ -31,8 +31,14 @@
                     <input id="tb_subreddit" type="text" class="form-control" placeholder="Malaga">
                 </div>
             </div>
+            <div class="mt-2">
+                <label class="form-label">Word</label>
+            </div>
+            <div>     
+                <input id="tb_word" type="text" class="form-control" placeholder="Malaga">
+            </div>
             <div>
-                <button type="button" class="btn btn-outline-primary w-100" onclick="sendString()">Get Data</button>
+                <button id="btn_getdata" type="button" class="btn btn-outline-primary mt-3 w-100" onclick="sendString()">Get Data</button>
             </div>
         </div>
     </div>
@@ -49,26 +55,17 @@
                 <h5>Number Of Comments Analysed</h5>
                 <h1 id="comment_count"></h1>
             </div>
-            <div class="col-lg-6 my-4">
+            <div class="col-lg-6 mx-auto my-4 collapse">
                 <h5>General Attitude</h5>
                 <h1 id="attitude_result"></h1>
             </div>
-            <div class="col-lg-6 my-4">
-                <h5>Confidence</h5>
-                <h1 id="attitude_rating"></h1>
-            </div>
-            <div class="col-lg-6 my-4 mx-auto">
-                <h5>Most Used Words</h5>
-                <h1 id="mostusedword_1"></h1>                
-                <h1 id="mostusedword_2"></h1>
-                <h1 id="mostusedword_3"></h1>
-                <h1 id="mostusedword_4"></h1>
-                <h1 id="mostusedword_5"></h1>
-            </div>
         </div>
+        <div class="row text-center"></div>
+            <div class="col-lg-8 mx-auto my-4">
+                <img id="data_chart" class="w-100">
+            </div>
+        </div>        
     </div>
-
-
 </body>
 </html>
 
@@ -77,7 +74,13 @@
 <script>
 
     function sendString() {
-        var tb_subreddit = document.getElementById('tb_subreddit').value;
+        var tb_subreddit = document.getElementById('tb_subreddit').value;        
+        var tb_word = document.getElementById('tb_word').value;
+
+        var btn_getdata = document.getElementById('btn_getdata');
+        btn_getdata.innerText = 'Loading...';
+        btn_getdata.disabled = true;
+
 
         // Send a POST request to the Flask backend with the input string
         fetch('/getdata', {
@@ -85,24 +88,21 @@
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ subreddit: tb_subreddit })  // Pass the input string
+            body: JSON.stringify({ subreddit: tb_subreddit, word: tb_word })  // Pass the input string
         })
         .then(response => response.json())
         .then(data => {
             console.log(data);
             document.getElementById('post_count').innerText = data.post_count;            
-            document.getElementById('comment_count').innerText = data.comment_count;
-             
-            document.getElementById('attitude_result').innerText = data.attitude_result;             
-            document.getElementById('attitude_rating').innerText = data.attitude_rating + '%'; 
-
-            document.getElementById('mostusedword_1').innerText = data.mostusedword_1; 
-            document.getElementById('mostusedword_2').innerText = data.mostusedword_2; 
-            document.getElementById('mostusedword_3').innerText = data.mostusedword_3; 
-            document.getElementById('mostusedword_4').innerText = data.mostusedword_4; 
-            document.getElementById('mostusedword_5').innerText = data.mostusedword_5;   
+            document.getElementById('comment_count').innerText = data.comment_count;             
+            document.getElementById('attitude_result').innerText = data.attitude_result;
+            var timestamp = new Date().getTime();
+            document.getElementById('data_chart').src = '/static/images/result_chart_1.png?time=' + timestamp;  
 
             document.getElementById('container_results').style.display = 'block'; 
+
+            btn_getdata.innerText = 'Get Data';
+            btn_getdata.disabled = false;
 
         })
         .catch(error => console.error('Error:', error));
