@@ -1,1 +1,7 @@
 Flask>=2.2.3
+praw
+pandas
+textblob
+matplotlib
+seaborn
+wordcloud
