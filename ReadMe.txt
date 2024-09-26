@@ -35,6 +35,7 @@ docker rm $(docker ps -aq)
 docker rmi $(docker images -q)
 
 docker build -t app1 .
+docker build -f docker/Dockerfile -t app1 .
 # docker run app1
 docker run -p 5000:5000 app1
 
