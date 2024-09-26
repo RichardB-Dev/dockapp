@@ -1,0 +1,61 @@
+
+<img src="/static/images/redditdata_logo.png" style="max-width:80px" class="me-3">
+<h4>Reddit Data Checker</h4>
+
+<label style="margin-top: 50px;">Sub Reddit</label>
+<input id="tb_subreddit" type="text" placeholder="Malaga">
+
+<label style="margin-top: 50px;">Word</label>
+<input id="tb_word" type="text" placeholder="Bien">
+
+<button id="btn_getdata" type="button" onclick="sendString()">Get Data</button>
+
+<div style="margin-top: 50px;">
+    <h5>Number Of Posts Analysed</h5>
+    <h1 id="post_count"></h1>
+
+    <h5>Number Of Comments Analysed</h5>
+    <h1 id="comment_count"></h1>
+
+    <img id="data_chart" class="w-100">
+</div>
+
+
+  
+<script>
+
+    function sendString() {
+        var tb_subreddit = document.getElementById('tb_subreddit').value;        
+        var tb_word = document.getElementById('tb_word').value;
+
+        // Disable button
+        document.getElementById('btn_getdata').disabled = true;
+
+
+        // Send a POST request to the Flask backend with the input string
+        fetch('/getdata', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ subreddit: tb_subreddit, word: tb_word })  // Pass the input string
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            document.getElementById('post_count').innerText = data.post_count;            
+            document.getElementById('comment_count').innerText = data.comment_count;        
+            var timestamp = new Date().getTime();
+            document.getElementById('data_chart').src = '/static/images/result_chart_1.png?time=' + timestamp;  
+
+            // Enable button
+            document.getElementById('btn_getdata').disabled = false;
+        })
+        .catch(error => {
+                // Enable button
+                document.getElementById('btn_getdata').disabled = false;
+                alert('An error occurred: ' + error.message); // Error pop-up
+            });
+    }
+    
+</script>

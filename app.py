@@ -19,6 +19,11 @@ def home():
     print("Load Page 1")
     return render_template('index.html')
 
+@app.route('/basic')
+def basic():
+    print("Load Page 1")
+    return render_template('basic.html')
+
 
 @app.route('/test')
 def test():
