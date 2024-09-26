@@ -1,4 +1,15 @@
+#############################################
+## Standard rebuild
 
+git pull
+docker stop $(docker ps -aq)
+docker rm $(docker ps -aq)
+docker rmi $(docker images -q)
+docker build -f docker/Dockerfile -t app1 .
+docker run -p 5000:5000 app1
+
+
+#############################################
 
 
 ##Fix environmental variables
@@ -94,3 +105,6 @@ sudo ln -s /etc/nginx/sites-available/workshop32.ovh /etc/nginx/sites-enabled/
 
 sudo nginx -t
 sudo systemctl restart nginx
+
+
+ssh 
