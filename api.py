@@ -26,6 +26,9 @@ user_agent = 'my_bot/0.1 by u/No-Cherry-3059'
 
 post_count_limit = 10
 comment_count_limit = 100
+
+GET_SUBREDDIT = ''
+GET_WORD = ''
     
 # Initializing PRAW with the credentials
 reddit = praw.Reddit(client_id=client_id,
@@ -35,15 +38,15 @@ reddit = praw.Reddit(client_id=client_id,
 
 def datacheck(SUBREDDIT, WORD):
     # Setting the variables
-    sub = SUBREDDIT # 'SkincareAddiction'
-    word = WORD #'ordinary'
+    GET_SUBREDDIT = SUBREDDIT # 'SkincareAddiction'
+    GET_WORD = WORD #'ordinary'
 
 
     # Retrieving posts (limited to 300) and associated comments from the SkincareAddiction subreddit
     print("API - Request Data")
-    subreddit = reddit.subreddit(sub)
+    subreddit = reddit.subreddit(GET_SUBREDDIT)
     print("API - Response")
-    posts = list(subreddit.search(word, limit = post_count_limit))
+    posts = list(subreddit.search(GET_WORD, limit = post_count_limit))
 
     Post_Cleaned = clean_Posts(posts)
     Comments_Cleaned = clean_Comments(posts)
@@ -71,12 +74,24 @@ def datacheck(SUBREDDIT, WORD):
 
     # 230 posts related to the topic of The Ordinary brand were retrieved from the subreddit
     df_posts.info()
-    get_chart(df_posts)
-    attitude_result = get_attitude(posts)
+
+    
+
+    ordinary_posts = df_posts[df_posts['title'].str.contains(GET_WORD, case=False)].copy()
+
+    ordinary_posts['selftext'] = ordinary_posts['selftext'].fillna(' ')
+    ordinary_posts[['polarity post', 'subjectivity post']] = ordinary_posts['title'].apply(lambda x: pd.Series(analyze_sentiment(x)))
+    ordinary_posts[['polarity selftext', 'subjectivity selftext']] = ordinary_posts['selftext'].apply(lambda x: pd.Series(analyze_sentiment(x)))
+    ordinary_posts['selftext sentiment'] = ordinary_posts ['polarity selftext'].apply(lambda x: pd.Series(sentiment_type(x)))
+    
+    get_chart(ordinary_posts)        
+    #attitude_result = get_post_description_sentiment(ordinary_posts)
+    attitude_result = get_comment_sentiment(df_comments)        
+ 
     return jsonify({
         'post_count': len(Post_Cleaned),
         'comment_count': len(Comments_Cleaned),        
-        'attitude_result': attitude_result     
+        'attitude_result': attitude_result    
     })
 
 
@@ -101,7 +116,7 @@ def clean_Comments(posts):
 
     for post in posts:        
         comment_count = 0 
-        post.comments.replace_more(limit=0) 
+        post.comments.replace_more(limit=1) 
         for comment in post.comments.list():  
             print(post.title)
             if isinstance(comment, praw.models.MoreComments):
@@ -121,20 +136,9 @@ def clean_Comments(posts):
     return Comments_Cleaned
 
 
-def get_chart(df_posts):
-    def analyze_sentiment(text):
-        blob = TextBlob(text)
-        return blob.sentiment.polarity, blob.sentiment.subjectivity
-
-
-    ordinary_posts = df_posts[df_posts['title'].str.contains('ordinary', case=False)].copy()
-    ordinary_posts['selftext'] = ordinary_posts['selftext'].fillna(' ')
-
-    ordinary_posts[['polarity post', 'subjectivity post']] = ordinary_posts['title'].apply(lambda x: pd.Series(analyze_sentiment(x)))
-    ordinary_posts[['polarity selftext', 'subjectivity selftext']] = ordinary_posts['selftext'].apply(lambda x: pd.Series(analyze_sentiment(x)))
-
+def get_chart(df_posts):    
     plt.figure(figsize=(10, 6))
-    sns.histplot(ordinary_posts['polarity post'], bins=20, kde=True)
+    sns.histplot(df_posts['polarity post'], bins=20, kde=True)
     plt.title('Distribution of Post Title Polarity')
     plt.xlabel('Polarity')
     plt.ylabel('Frequency')
@@ -146,10 +150,103 @@ def get_chart(df_posts):
     # Save the plot to the specified file path
     plt.savefig(filepath)
     plt.close() 
+    
+    
+
+def analyze_sentiment(text):
+    blob = TextBlob(text)
+    return blob.sentiment.polarity, blob.sentiment.subjectivity   
+
+def get_post_description_sentiment(posts):       
+    sentiment_selftext_counts = posts['selftext sentiment'].value_counts()
+    most_freq_selftext_sentiment = sentiment_selftext_counts.idxmax()
+    print ('Most frequent selftext sentiment:')
+    print (most_freq_selftext_sentiment)
+    return most_freq_selftext_sentiment
+
+
+def get_comment_sentiment(df_comments):       
+    comments = df_comments[df_comments['title'].str.contains(GET_WORD, case=False)].copy()
+    comments[['polarity comment', 'subjectivity comment']] = comments['comment'].apply(lambda x: pd.Series(analyze_sentiment(x)))
+    comments['comment sentiment'] = comments ['polarity comment'].apply(lambda x: pd.Series(sentiment_type(x)))
+    sentiment_comment_counts = comments['comment sentiment'].value_counts()
+    most_freq_comment_sentiment = sentiment_comment_counts.idxmax()
+    print (most_freq_comment_sentiment)
+    return most_freq_comment_sentiment
+
+    
+def sentiment_type(x):
+    if x == 0:
+        return ('Neutral')
+    elif x > 0:
+        return ('Positive')
+    else:
+        return ('Negative')
+
+
+def get_mostusedwords(commentlist):
+    freq_word_comment = commentlist.words_
+    top_5_words = sorted(freq_word_comment.items(), key=lambda x: x[1], reverse=True)[:5]
+    print ('Top 5 most frequent words in the comment section:')
+    for word,_ in top_5_words:
+        print (word)
+    return top_5_words
+
+    
 
 
 
-def get_attitude(posts):
-    print("API - Get Post Attitude")
-    attitude = 'Positive'
-    return attitude
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def get_sentiment(ordinary_posts):
+    
+    # NEW CODE
+    ordinary_posts['post sentiment'] = ordinary_posts ['polarity post'].apply(lambda x: pd.Series(sentiment_type(x)))
+    ordinary_posts['selftext sentiment'] = ordinary_posts ['polarity selftext'].apply(lambda x: pd.Series(sentiment_type(x)))
+
+    # SENTIMENT POST COUNTS
+
+    sentiment_post_counts = ordinary_posts['post sentiment'].value_counts()
+    print (sentiment_post_counts)
+
+    # SENTIMENT SELFTEXT COUNTS
+    sentiment_selftext_counts = ordinary_posts['selftext sentiment'].value_counts()
+    print (sentiment_selftext_counts)
+
+    # MOST FREQUEST SENTIMENT IN POST
+    most_freq_post_sentiment = sentiment_post_counts.idxmax()
+    print ('Most frequent post sentiment:')
+    print (most_freq_post_sentiment)
+
+
+    # MOST FREQUEST SENTIMENT IN SELFTEXT
+
+    most_freq_selftext_sentiment = sentiment_selftext_counts.idxmax()
+    print ('Most frequent selftext sentiment:')
+    print (most_freq_selftext_sentiment)
